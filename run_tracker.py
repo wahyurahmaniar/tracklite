@@ -38,7 +38,9 @@ def loop_and_track(cam, tracker, arg):
       cam: the camera instance (video source).
       tracker: the TRT YOLOv3 object detector instance.
     """
-
+    fcount = 0
+    n_fps = 0
+    
     if arg.filename:
         while True:
             if cv2.getWindowProperty(WINDOW_NAME, 0) < 0:
@@ -51,6 +53,15 @@ def loop_and_track(cam, tracker, arg):
                 cv2.imshow(WINDOW_NAME, img_final)
                 cam.write(img_final)
                 end = time.time()
+                
+                buffer1 = "%s%d%s" % ("./Result/img_", fcount, ".jpg")
+                cv2.imwrite(buffer1, img)
+                
+                fcount += 1
+                n_fps = n_fps + 1/(end - start)
+                if fcount == 1000:
+                	print("Average fps: ", n_fps/1000)
+                
                 print("time: {:.03f}s, fps: {:.03f}".format(end - start, 1 / (end - start)))
             key = cv2.waitKey(1)
             if key == 27:  # ESC key: quit program
