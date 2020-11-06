@@ -19,16 +19,17 @@ sys.path.insert(1, os.path.join(sys.path[0], ".."))
 
 
 TRT_LOGGER = trt.Logger()
-
+EXPLICIT_BATCH = [] if trt.__version__[0] < '7' else \
+        [1 << (int)(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)]
 
 def get_engine(onnx_file_path, engine_file_path=""):
     # """Attempts to load a serialized engine if available, otherwise builds a new TensorRT engine and saves it."""
     # def build_engine():
     #     """Takes an ONNX file and creates a TensorRT engine to run inference with"""
-    with trt.Builder(TRT_LOGGER) as builder, builder.create_network() as network, trt.OnnxParser(network, TRT_LOGGER) as parser:
-        builder.max_workspace_size = 1 << 28 # 256MB is for jetson nano
+    with trt.Builder(TRT_LOGGER) as builder, builder.create_network(*EXPLICIT_BATCH) as network, trt.OnnxParser(network, TRT_LOGGER) as parser:
+        builder.max_workspace_size = 1 << 30 # for jetson TX2 and Xavier NX
         builder.max_batch_size = 1
-        builder.fp16_mode = True
+        #builder.fp16_mode = True
         # Parse model file
         if not os.path.exists(onnx_file_path):
             print('ONNX file {} not found, please run yolov3_to_onnx.py first to generate it.'.format(onnx_file_path))
